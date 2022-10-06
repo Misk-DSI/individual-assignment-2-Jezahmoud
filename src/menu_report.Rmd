@@ -1,0 +1,123 @@
+---
+title: "menu_report.Rmd"
+output: html_document
+date: "2022-10-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Exploratory data analysis conducted on a Mcdonalds data set. 
+
+
+We start by loading packages, data, and making some basic changes to make the column names easier to read.
+
+```{r , echo=FALSE}
+# Loading important libraries
+library(readr)
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+library(repr)
+library(ggthemes)
+```
+
+```{r}
+# Loading dataset
+Data = read.csv("~/Documents/dsi_2022-02/individual-assignment-2-Jezahmoud/data/menu.csv", header=T) 
+names(Data)
+# Cleaning the columns names
+Clean_names <- gsub(pattern = "*....Daily.Value.", replacement=".DV", names(Data)) 
+names(Data) <- Clean_names
+names(Data)
+```
+
+
+We want to look at how serving size relates to different nutritional values. However, serving size is recorded it means ounces and grammes are mixed together in the same column. We turn it into a single number variable called food.g for solid food and millilitres for liquid food. 
+
+```{r }
+# Choose the fields that have the strings "fl oz" and "carton"
+drinks.oz <- Data[str_detect(Data$Serving.Size, " fl oz.*"),]
+drinks.ml <- Data[str_detect(Data$Serving.Size, 'carton'),]
+
+#Convert the ounces to millilitres
+#values are rounded to zero decimal places
+drinks.oz$Serving.Size <- 
+  round(as.numeric(gsub(" fl oz.*", "", drinks.oz$Serving.Size))*29.5735,0)
+drinks.ml$Serving.Size <- 
+  round(as.numeric(gsub(".*\\((.*)\\ ml).*", "\\1", drinks.ml$Serving.Size)),0)
+
+# Choose fields that contain "g" string
+# values are rounded to zero decimal places
+food.g <- Data[str_detect(Data$Serving.Size, 'g'),] 
+food.g$Serving.Size <- 
+  round(as.numeric(gsub(".*\\((.*)\\ g).*", "\\1", food.g$Serving.Size)),0)
+
+# Merge the rows of all those data tables into a single data table.
+# Make a new column labelled "Type" and the values to be "drink" or "meal."
+Data2 <- rbind(drinks.oz,drinks.ml)
+Data2$Type <- rep("drinks.ml", nrow(Data2))
+food.g$Type <- rep("food.g", nrow(food.g))
+Data2 <- rbind(Data2,food.g)
+
+```
+
+## Including Plots
+
+
+How each type of food is spread out. When it comes to menu options, coffee and tea are by far the most popular.
+
+```{r }
+# Food categories
+options(repr.plot.height=3, repr.plot.width=6)
+ggplot(Data2) +
+  geom_bar(aes(x = reorder(Category, table(Category)[Category])), fill = "lightblue") +
+  coord_flip() +
+  theme_tufte(ticks=F) +
+  labs(x = NULL)
+```
+
+Calorie distribution as shown by a histogram with density line. Around 300 is where we see the highest concentration of Caloric values.
+
+```{r}
+# Exploring calories
+options(repr.plot.height=3, repr.plot.width=6)
+ggplot(Data2, aes(x = Calories)) +
+  geom_histogram(aes(y = ..density..), fill = "yellow", binwidth = 40, color="gray") + 
+  geom_density() +
+  scale_x_continuous(breaks = seq(min(Data$Calories), max(Data$Calories), by = 200)) +
+  theme_pander()
+```
+
+
+Smooth density estimates for Calories in each food group. The median number of calories for each group is depicted by the vertical dashed line. In contrast to the Smoothies & Shakes category, which has a narrow range of values close to the mean, the Beef & Pork, Breakfast, and Chicken & Fish categories display a much wider distribution of values that are all above the middle value.
+
+```{r}
+#Calories by category
+options(repr.plot.height=4, repr.plot.width=6)
+ggplot(Data2, aes(x = Calories)) + 
+  geom_density(fill="lightblue") +
+  facet_wrap( ~ Category) +
+  geom_vline(aes(xintercept = median(Calories)), linetype = 2) +
+  theme_pander(base_size=8)
+```
+
+The number of calories in each type of food is shown in a box plot. As you might have guessed from the density plots above, the most calorically dense food groups are (a) chicken and fish, (b) smoothies and shakes, (c) breakfast, and (d) beef and pork. We can now see in the box plot that the Chicken & Fish group has a huge outlier in terms of calories.
+
+```{r}
+#Calories by category
+options(repr.plot.height=3, repr.plot.width=6)
+ggplot(Data2, aes(x = reorder(Category, Calories), y = Calories)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_pander() +
+  labs(x = NULL)
+
+```
+
+Conclusion
+
+A brief exploratory data analysis has been done for the data set. The time limitation restricted us to performing more invistagation. But we were able to use some useful information about the data set we were looking at.
