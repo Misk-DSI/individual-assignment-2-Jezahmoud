@@ -5,14 +5,23 @@ library(tidyverse)
 library(janitor)
 library(ggplot2)
 library(repr)
+library(ggthemes)
+library(here)
+library(reactable)
+library(DT)
+
+here("menu_report.Rmd")
 
 # Loading dataset
 Data = read.csv("~/Documents/dsi_2022-02/individual-assignment-2-Jezahmoud/data/menu.csv", header=T) 
-names(Data)
+
+
+
+
 # Cleaning the columns names
 Clean_names <- gsub(pattern = "*....Daily.Value.", replacement=".DV", names(Data)) 
 names(Data) <- Clean_names
-names(Data)
+datatable(Data,options = list(searching = FALSE,pageLength = 5,lengthMenu = c(5, 10, 15, 20), scrollX = T))
 
 
 # Choose the fields that have the strings "fl oz" and "carton"
@@ -42,7 +51,7 @@ Data2 <- rbind(Data2,food.g)
 # Food categories
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2) +
-  geom_bar(aes(x = reorder(Category, table(Category)[Category])), fill = "lightblue") +
+  geom_bar(aes(x = reorder(Category, table(Category)[Category])), fill = "lightblue",color="black") +
   coord_flip() +
   theme_tufte(ticks=F) +
   labs(x = NULL)
@@ -51,7 +60,7 @@ ggplot(Data2) +
 # Exploring calories
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2, aes(x = Calories)) +
-  geom_histogram(aes(y = ..density..), fill = "yellow", binwidth = 40, color="gray") + 
+  geom_histogram(aes(y = ..density..), fill = "lightblue", binwidth = 40, color="black") + 
   geom_density() +
   scale_x_continuous(breaks = seq(min(Data$Calories), max(Data$Calories), by = 200)) +
   theme_pander()
@@ -69,7 +78,9 @@ ggplot(Data2, aes(x = Calories)) +
 #Calories by category
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2, aes(x = reorder(Category, Calories), y = Calories)) +
-  geom_boxplot() +
+  geom_boxplot(color="black",fill="lightblue") +
   coord_flip() +
   theme_pander() +
   labs(x = NULL)
+
+

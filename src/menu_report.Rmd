@@ -2,20 +2,26 @@
 title: "menu_report.Rmd"
 output: html_document
 date: "2022-10-06"
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../"
+    )
+  })
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
 
-
-## Exploratory data analysis conducted on a Mcdonalds data set. 
+## Assignment-2-Jezahmoud
 
 
 We start by loading packages, data, and making some basic changes to make the column names easier to read.
 
-```{r , echo=FALSE}
+```{r , echo=FALSE,include=FALSE}
 # Loading important libraries
 library(readr)
 library(tidyverse)
@@ -23,16 +29,23 @@ library(janitor)
 library(ggplot2)
 library(repr)
 library(ggthemes)
+library(here)
+library(reactable)
+library(DT)
 ```
 
+## Data 
 ```{r}
 # Loading dataset
 Data = read.csv("~/Documents/dsi_2022-02/individual-assignment-2-Jezahmoud/data/menu.csv", header=T) 
-names(Data)
+
 # Cleaning the columns names
 Clean_names <- gsub(pattern = "*....Daily.Value.", replacement=".DV", names(Data)) 
 names(Data) <- Clean_names
-names(Data)
+
+datatable(Data,options = list(searching = FALSE,pageLength = 5,lengthMenu = c(5, 10, 15, 20), scrollX = T),
+          caption = 'Table 1: Mcdonalds/nutrition-facts dataset.')
+
 ```
 
 
@@ -65,7 +78,7 @@ Data2 <- rbind(Data2,food.g)
 
 ```
 
-## Including Plots
+## Exploratory Data Analysis
 
 
 How each type of food is spread out. When it comes to menu options, coffee and tea are by far the most popular.
@@ -74,7 +87,7 @@ How each type of food is spread out. When it comes to menu options, coffee and t
 # Food categories
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2) +
-  geom_bar(aes(x = reorder(Category, table(Category)[Category])), fill = "lightblue") +
+  geom_bar(aes(x = reorder(Category, table(Category)[Category])), fill = "lightblue",color="black") +
   coord_flip() +
   theme_tufte(ticks=F) +
   labs(x = NULL)
@@ -86,7 +99,7 @@ Calorie distribution as shown by a histogram with density line. Around 300 is wh
 # Exploring calories
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2, aes(x = Calories)) +
-  geom_histogram(aes(y = ..density..), fill = "yellow", binwidth = 40, color="gray") + 
+  geom_histogram(aes(y = ..density..), fill = "lightblue", binwidth = 40, color="black") + 
   geom_density() +
   scale_x_continuous(breaks = seq(min(Data$Calories), max(Data$Calories), by = 200)) +
   theme_pander()
@@ -111,13 +124,14 @@ The number of calories in each type of food is shown in a box plot. As you might
 #Calories by category
 options(repr.plot.height=3, repr.plot.width=6)
 ggplot(Data2, aes(x = reorder(Category, Calories), y = Calories)) +
-  geom_boxplot() +
+  geom_boxplot(color="black",fill="lightblue") +
   coord_flip() +
   theme_pander() +
   labs(x = NULL)
 
 ```
 
-Conclusion
+## Conclusion
+
 
 A brief exploratory data analysis has been done for the data set. The time limitation restricted us to performing more invistagation. But we were able to use some useful information about the data set we were looking at.
